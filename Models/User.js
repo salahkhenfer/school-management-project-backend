@@ -1,6 +1,20 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const User = sequelize.define("User", {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+
+    unique: true,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   username: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -10,7 +24,7 @@ const User = sequelize.define("User", {
     allowNull: false,
   },
   role: {
-    type: DataTypes.ENUM("admin", "sub-admin", "father", "teacher", "employee"),
+    type: DataTypes.ENUM("admin", "sub-admin", "parent", "teacher", "employee"),
     allowNull: false,
   },
   refreshToken: {
@@ -18,4 +32,6 @@ const User = sequelize.define("User", {
   },
 });
 
+User.hasMany(User, { as: "SubAdmins", foreignKey: "adminId" });
+User.belongsTo(User, { as: "Admin", foreignKey: "adminId" });
 module.exports = User;

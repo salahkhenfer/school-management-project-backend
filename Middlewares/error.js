@@ -12,4 +12,4 @@ const handelError = (err, req, res, next) => {
   });
 };
 
-module.exports = { notFound, handelError};
+module.exports = { notFound, handelError };

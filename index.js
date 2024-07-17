@@ -41,14 +41,15 @@ app.get("/", (req, res) => {
   res.send("Hello World from Db");
 });
 
-// Uncomment these lines when you have the routes implemented
-// app.use("/check_Auth", require("./Routes/Auth/check_Auth"));
-// app.use("/Login", require("./Routes/Auth/Login"));
-// app.use("/Logout", require("./Routes/Auth/Logout"));
-app.use("/auth", require("./Routes/authRouter"));
-// handel errors
+app.use("/api/auth", require("./Routes/authRoutes"));
+app.use("/api/students", require("./Routes/studentRoutes"));
+app.use("/api/languages", require("./Routes/languagesRoutes"));
+app.use("/api", require("./Routes/protectedRoutes"));
+
+//error handling middleware
 app.use(notFound);
 app.use(handelError);
+
 // Sync the models and start the server
 sequelize
   .sync()

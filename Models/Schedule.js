@@ -1,19 +1,20 @@
+// models/Schedule.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db"); // Assuming this correctly initializes Sequelize
 
-const Course = sequelize.define("Course", {
-  name: {
+const Schedule = sequelize.define("Schedule", {
+  day: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  description: {
-    type: DataTypes.STRING,
+  startTime: {
+    type: DataTypes.TIME,
     allowNull: false,
   },
-  price: {
-    type: DataTypes.DECIMAL(10, 2),
+  endTime: {
+    type: DataTypes.TIME,
     allowNull: false,
   },
 });
 
-module.exports = Course;
+module.exports = Schedule;
