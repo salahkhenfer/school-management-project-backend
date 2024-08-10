@@ -80,8 +80,8 @@ const registerController = async (req, res) => {
 
     res.json({ message: "User created successfully" });
   } catch (error) {
-    console.error("Error creating user:", error.parent.sqlMessage);
-    res.status(500).json({ message: error.parent.sqlMessage });
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: error });
   }
 };
 

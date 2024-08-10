@@ -1,54 +1,106 @@
 // controllers/StudentController.js
 const Student = require("../Models/Student");
 const Parent = require("../Models/Parent");
-
+const Group = require("../Models/Group");
+const asyncHandler = require("express-async-handler");
+const { Op } = require("sequelize");
+const Payment = require("../Models/Payment");
 const addStudent = async (req, res) => {
-  try {
-    let newParent;
+  const { fullName, birthDay, price, groupId, parent: parentData } = req.body;
 
-    if (
-      req.body.parentFullName &&
-      req.body.parentEmail &&
-      req.body.parentPhone
-    ) {
-      // Create a new parent if parentFullName is provided
-      newParent = await Parent.create({
-        fullName: req.body.parentFullName,
-        email: req.body.parentEmail,
-        phone: req.body.parentPhone,
-        password: req.body.password,
+  try {
+    // Check if the student already exists
+    let student = await Student.findOne({
+      where: {
+        fullName,
+        birthDay: new Date(birthDay), // Ensure date format is consistent
+      },
+    });
+
+    if (!student) {
+      student = await Student.create({
+        fullName,
+        birthDay,
       });
     }
 
-    // Create a new student
-    const newStudent = await Student.create({
-      fullName: req.body.fullName,
-      age: req.body.age,
-      grade: req.body.grade,
-      regiments: req.body.regiments,
-    });
+    // Check if the group exists and add the student to the group if it does
+    if (groupId) {
+      const group = await Group.findByPk(groupId);
+      if (group) {
+        // Check if the student is already in the group
+        const isStudentInGroup = await group.hasStudent(student);
+        if (!isStudentInGroup) {
+          // Add student to the group
+          await group.addStudent(student);
 
-    // Associate the parent with the student if parent exists
-    if (newParent) {
-      await newStudent.setParent(newParent);
+          // Create payment
+          const payment = await Payment.create({
+            amount: price,
+            groupId,
+            studentId: student.id,
+          });
+
+          await student.addPayment(payment);
+        } else {
+          return res
+            .status(400)
+            .send({ error: "Student is already in the group" });
+        }
+      } else {
+        return res.status(404).send({ error: "Group not found" });
+      }
     }
 
-    res.status(201).send({ message: "Student created successfully." });
+    // If there's a parent, create or find the parent and associate it with the student
+    if (parentData) {
+      let parent = await Parent.findOne({ where: { email: parentData.email } });
+      if (!parent) {
+        parent = await Parent.create(parentData);
+      }
+      await student.setParent(parent);
+    }
+
+    res
+      .status(201)
+      .send({ message: "Student created/updated successfully.", student });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
 };
+
 const getAllStudentsController = async (req, res) => {
   try {
-    const students = await Student.findAll({
+    const { page = 1, pageSize = 10 } = req.body;
+
+    const limit = parseInt(pageSize);
+    const offset = (page - 1) * limit;
+
+    const { count, rows: students } = await Student.findAndCountAll({
       include: [
         {
           model: Parent,
           as: "parent",
         },
+
+        {
+          model: Group,
+          through: { attributes: [] }, // لإزالة معلومات الجدول الوسيط من النتيجة
+          as: "groups",
+        },
       ],
+      limit,
+      offset,
     });
-    res.status(200).json({ students });
+
+    const totalPages = Math.ceil(count / limit);
+
+    res.status(200).json({
+      students,
+      currentPage: parseInt(page),
+      totalPages,
+      totalStudents: count,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch students" });
@@ -63,6 +115,16 @@ const getStudentById = async (req, res) => {
         {
           model: Parent,
           as: "parent",
+        },
+
+        {
+          model: Payment,
+          as: "payments",
+        },
+        {
+          model: Group,
+          through: { attributes: [] }, // لإزالة معلومات الجدول الوسيط من النتيجة
+          as: "groups",
         },
       ],
     });
@@ -113,10 +175,47 @@ const deleteStudent = async (req, res) => {
   }
 };
 
+const searchStudent = async (req, res) => {
+  const { fullName } = req.body;
+
+  try {
+    const students = await Student.findAll({
+      where: {
+        fullName: {
+          [Op.like]: `%${fullName}%`, // Case-insensitive search
+        },
+      },
+      include: [
+        {
+          model: Parent,
+          as: "parent", // Ensure this alias matches your model definition
+        },
+      ],
+    });
+
+    res.status(200).json({ students });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to search for students", details: err.message });
+  }
+};
+const  countStudents = async (req, res) => {
+  try {
+    const count = await Student.count();
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to count students" });
+  }
+};
+
 module.exports = {
   addStudent,
   getAllStudentsController,
   getStudentById,
   updateStudent,
+  searchStudent,
   deleteStudent,
+  countStudents,
 };

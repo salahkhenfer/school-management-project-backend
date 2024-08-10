@@ -1,6 +1,7 @@
 const sequelize = require("../config/db");
 const { DataTypes } = require("sequelize");
 const Level = require("./Level");
+const Group = require("./Group");
 const Language = sequelize.define("Language", {
   name: {
     type: DataTypes.STRING,
@@ -12,6 +13,6 @@ const Language = sequelize.define("Language", {
   },
 });
 
-Language.hasMany(Level, { as: "Levels", foreignKey: "languageId" });
+// Language.hasMany(Level, { as: "Levels", foreignKey: "languageId" });
 
 module.exports = Language;

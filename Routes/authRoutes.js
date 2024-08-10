@@ -24,5 +24,10 @@ router.get("/protected", authenticate, (req, res) => {
     user: req.user,
   });
 });
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.findAll();
+  res.json(users);
+});
 
+router.get("/getAllUsers", getAllUsers);
 module.exports = router;

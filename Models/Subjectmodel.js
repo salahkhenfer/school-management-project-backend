@@ -20,6 +20,6 @@ const SubjectModel = sequelize.define("SubjectModel", {
   },
 });
 
-SubjectModel.hasMany(Group, { as: "Groups", foreignKey: "subjectId" });
+SubjectModel.hasMany(Group, { as: "groups", foreignKey: "subjectId" });
 
 module.exports = SubjectModel;

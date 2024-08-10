@@ -20,9 +20,8 @@ const sequelize = new Sequelize(
 
 // Synchronize the database
 sequelize
-  .sync({
-    force: false, // Set to true to drop and recreate the tables on every sync
-  })
+  .sync({ alter: true }) // Update the database schema
+
   .then(() => {
     console.log("Database synchronized");
   })

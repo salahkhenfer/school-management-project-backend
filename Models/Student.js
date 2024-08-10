@@ -1,8 +1,10 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../config/db"); // Assuming this correctly initializes Sequelize
+const sequelize = require("../config/db"); // Ensure this correctly initializes Sequelize
 
-const Course = require("./Course"); // Assuming Course model is correctly defined
-const Parent = require("./Parent"); // Assuming Parent model is correctly defined
+const Course = require("./Course"); // Ensure these paths are correct
+const Parent = require("./Parent");
+const Session = require("./Session");
+const Group = require("./Group");
 
 const Student = sequelize.define(
   "Student",
@@ -11,18 +13,12 @@ const Student = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    age: {
-      type: DataTypes.INTEGER,
+    birthDay: {
+      type: DataTypes.DATE,
       allowNull: false,
     },
-    grade: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    regiments: {
-      // Corrected to lowercase 'regiments'
-      type: DataTypes.STRING,
-      allowNull: false,
+    price: {
+      type: DataTypes.FLOAT,
     },
   },
   {
@@ -30,12 +26,21 @@ const Student = sequelize.define(
   }
 );
 
-// Define associations
-Student.belongsToMany(Course, { through: "StudentCourse" });
-Course.belongsToMany(Student, { through: "StudentCourse" });
+// Associations
+// Group - Student (Many-to-Many)
+Group.belongsToMany(Student, { through: "StudentGroup", as: "students" });
+Student.belongsToMany(Group, { through: "StudentGroup", as: "groups" });
 
-Student.hasOne(Parent, { foreignKey: "studentId", as: "parent" });
-Parent.belongsTo(Student, { foreignKey: "studentId" });
-// Assuming 'parent' refers to the Parent model's alias
+// Course - Student (Many-to-Many)
+Course.belongsToMany(Student, { through: "StudentCourse", as: "students" });
+Student.belongsToMany(Course, { through: "StudentCourse", as: "courses" });
+
+// Parent - Student (One-to-Many)
+Parent.hasMany(Student, { foreignKey: "parentId", as: "students" });
+Student.belongsTo(Parent, { foreignKey: "parentId", as: "parent" });
+
+// Session - Student (Many-to-Many)
+Session.belongsToMany(Student, { through: "SessionStudent", as: "students" });
+Student.belongsToMany(Session, { through: "SessionStudent", as: "sessions" });
 
 module.exports = Student;

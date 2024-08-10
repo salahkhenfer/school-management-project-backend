@@ -9,6 +9,7 @@ const Languages = sequelize.define("Languages", {
   },
 });
 
-Languages.hasMany(Language);
+Languages.hasMany(Language, { as: "Languages", foreignKey: "languagesId" });
+Language.belongsTo(Languages, { as: "Languages", foreignKey: "languagesId" });
 
 module.exports = Languages;

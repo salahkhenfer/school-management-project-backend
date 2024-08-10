@@ -1,6 +1,7 @@
 // models/Schedule.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db"); // Assuming this correctly initializes Sequelize
+const Group = require("./Group");
 
 const Schedule = sequelize.define("Schedule", {
   day: {
@@ -13,6 +14,19 @@ const Schedule = sequelize.define("Schedule", {
   },
   endTime: {
     type: DataTypes.TIME,
+    allowNull: false,
+  },
+  location: {
+    type: DataTypes.STRING,
+
+    allowNull: false,
+  },
+  startDate: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  endDate: {
+    type: DataTypes.DATE,
     allowNull: false,
   },
 });

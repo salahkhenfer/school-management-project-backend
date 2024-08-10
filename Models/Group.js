@@ -4,85 +4,77 @@ const Student = require("./Student");
 const Teacher = require("./Teacher");
 const Schedule = require("./Schedule");
 const Session = require("./Session");
+const Level = require("./Level");
 
-const Grupe = sequelize.define(
-  "Grupe",
-  {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      required: true,
-    },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    isAvailable: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    numberOfSessions: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    maxStudents: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    startDate: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    endDate: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    duration: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    location: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    isCompleted: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
-    paymentMethod: {
-      type: DataTypes.ENUM("percentage", "session"),
-      allowNull: false,
-    },
+const Group = sequelize.define("Group", {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
-  {
-    hooks: {
-      afterCreate: async (grupe, options) => {
-        const sessions = [];
-        const sessionDuration = grupe.duration; // Assuming duration is in days
-        for (let i = 0; i < grupe.numberOfSessions; i++) {
-          const sessionDate = new Date(grupe.startDate);
-          sessionDate.setDate(sessionDate.getDate() + i * sessionDuration);
-          sessions.push({
-            date: sessionDate,
-            GrupeId: grupe.id,
-          });
-        }
-        await Session.bulkCreate(sessions);
-      },
-    },
-  }
-);
+  price: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+  },
+  type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  theRest: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
 
-Grupe.belongsToMany(Student, { through: "StudentGrupe" });
-Student.belongsToMany(Grupe, { through: "StudentGrupe" });
+  numberOfSessions: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  maxStudents: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  startDate: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  endDate: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
 
-Grupe.belongsToMany(Teacher, { through: "TeacherGrupe" });
-Teacher.belongsToMany(Grupe, { through: "TeacherGrupe" });
+  location: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  isCompleted: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+  },
+  paymentMethod: {
+    type: DataTypes.ENUM("percentage", "session"),
+    allowNull: false,
+  },
+});
 
-Grupe.hasMany(Schedule, { as: "Schedules" });
-Schedule.belongsTo(Grupe);
+// Group - Teacher (Many-to-Many)
+Group.belongsToMany(Teacher, { through: "TeacherGroup"  , as: "teachers" });
+Teacher.belongsToMany(Group, { through: "TeacherGroup", as: "groups" });
 
-Grupe.hasMany(Session, { as: "Sessions" });
-Session.belongsTo(Grupe);
 
-module.exports = Grupe;
+// Group - Schedule (One-to-Many)
+Group.hasMany(Schedule, {
+  foreignKey: "groupId", // Ensure this matches the foreign key in Schedule
+  as: "schedules",
+  onDelete: "CASCADE",
+});
+Schedule.belongsTo(Group, {
+  foreignKey: "groupId",
+  as: "group",
+  onDelete: "CASCADE",
+});
+Group.belongsTo(Level, { as: "Level", foreignKey: "GroupId" });
+
+// Group - Session (One-to-Many)
+// Group.hasMany(Session);
+// Session.belongsTo(Group);
+
+module.exports = Group;

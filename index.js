@@ -21,6 +21,7 @@ const corsOptions = {
     }
   },
   optionsSuccessStatus: 200,
+  credentials: true, // Allow credentials
 };
 
 const credentials = (req, res, next) => {
@@ -44,6 +45,15 @@ app.get("/", (req, res) => {
 app.use("/api/auth", require("./Routes/authRoutes"));
 app.use("/api/students", require("./Routes/studentRoutes"));
 app.use("/api/languages", require("./Routes/languagesRoutes"));
+app.use("/api/groups", require("./Routes/groupRoutes"));
+app.use("/api/teachers", require("./Routes/teacherRouter"));
+app.use("/api/schedules", require("./Routes/scheduleRouters"));
+app.use("/api/courses", require("./Routes/courseRoutes"));
+app.use("/api/parents", require("./Routes/parentRoutes"));
+app.use("/api/payments", require("./Routes/paymentRoutes"));
+app.use("/api/paymentTeacher", require("./Routes/paymentTeacherRoutes"));
+app.use("/api/paymentEmployer", require("./Routes/PaymentEmployerRouters"));
+app.use("/api/permissions", require("./routes/permissionRoutes"));
 app.use("/api", require("./Routes/protectedRoutes"));
 
 //error handling middleware

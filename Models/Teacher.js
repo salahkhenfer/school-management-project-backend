@@ -1,7 +1,9 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db"); // Assuming this correctly initializes Sequelize
 const Student = require("./Student");
-const Grupe = require("./Group");
+const Group = require("./Group");
+const bcrypt = require("bcrypt");
+const User = require("./User");
 
 const Teacher = sequelize.define("Teacher", {
   fullName: {
@@ -15,7 +17,6 @@ const Teacher = sequelize.define("Teacher", {
   },
   email: {
     type: DataTypes.STRING,
-    unique: true,
     allowNull: false,
   },
   password: {
@@ -24,24 +25,32 @@ const Teacher = sequelize.define("Teacher", {
   },
 });
 
-Teacher.hasMany(Student, { through: "StudentTeacher" });
-Student.belongsToMany(Teacher, { through: "StudentTeacher" });
+// Teacher.hasMany(Student, { through: "StudentTeacher" });
+// Student.belongsToMany(Teacher, { through: "StudentTeacher" });
 
-Teacher.belongsToMany(Grupe, { through: "TeacherGrupe" });
+// Teacher.belongsToMany(Group, { through: "TeacherGroup" });
 
 // Hook to create a User when a Teacher is created
 Teacher.addHook("afterCreate", async (teacher, options) => {
+  var hashedPassword = "";
   try {
+    if (teacher.password) {
+      hashedPassword = await bcrypt.hash(teacher.password, 10);
+      teacher.password = hashedPassword;
+    }
     await User.create({
       name: teacher.fullName,
       email: teacher.email,
       phone: teacher.phoneNumber,
-      username: teacher.email, // Assuming email is used as username
-      password: teacher.password, // Set a default password, should be hashed
+      username: teacher.email,
+      // Assuming email is used as username
+      password: hashedPassword,
+      // Set a default password, should be hashed
       role: "teacher",
     });
   } catch (error) {
     console.error("Error creating associated User:", error);
   }
 });
+
 module.exports = Teacher;

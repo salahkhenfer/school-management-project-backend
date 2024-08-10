@@ -7,9 +7,7 @@ const User = sequelize.define("User", {
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false,
-
-    unique: true,
+    allowNull: true,
   },
   phone: {
     type: DataTypes.STRING,
@@ -26,9 +24,6 @@ const User = sequelize.define("User", {
   role: {
     type: DataTypes.ENUM("admin", "sub-admin", "parent", "teacher", "employee"),
     allowNull: false,
-  },
-  refreshToken: {
-    type: DataTypes.STRING,
   },
 });
 
