@@ -247,6 +247,16 @@ const getGroupByID = asyncHandler(async (req, res) => {
           model: PaymentTeacher,
           as: "groupPayments", // Updated alias
         },
+        {
+          model: Session,
+          as: "sessions",
+          include: [
+            {
+              model: Student,
+              as: "students",
+            },
+          ],
+        },
       ],
     });
 
@@ -375,17 +385,28 @@ const getGroupByTeacher = asyncHandler(async (req, res) => {
   const { teacherId } = req.body;
 
   try {
-    // Fetch all groups with their associated teacherPayments filtered by teacherId
+    // Fetch all groups associated with the teacher through the TeacherGroup join table
     const groups = await Group.findAll({
       include: [
         {
+          model: Teacher,
+          as: "teachers",
+          where: { id: teacherId }, // Filter based on the teacher's ID
+          through: {
+            attributes: [], // This prevents Sequelize from including the join table data in the response
+          },
+        },
+        {
           model: PaymentTeacher,
           as: "groupPayments",
-
+        },
+        {
+          model: Session,
+          as: "sessions",
           include: [
             {
-              model: Teacher,
-              as: "paymentTeacherTeacher",
+              model: Student,
+              as: "students",
             },
           ],
         },

@@ -209,6 +209,30 @@ const  countStudents = async (req, res) => {
     res.status(500).json({ error: "Failed to count students" });
   }
 };
+const deleteStudentFropmGroup = async (req, res) => {
+  const { studentId, groupId } = req.body;
+
+  try {
+    const student = await Student.findByPk(studentId);
+
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    const group = await Group.findByPk(groupId);
+
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    await group.removeStudent(student);
+
+    res.status(200).json({ message: "Student removed from group successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to remove student from group" });
+  }
+}
 
 module.exports = {
   addStudent,
@@ -218,4 +242,5 @@ module.exports = {
   searchStudent,
   deleteStudent,
   countStudents,
+  deleteStudentFropmGroup,
 };

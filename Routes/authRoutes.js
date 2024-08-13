@@ -26,6 +26,12 @@ router.get("/protected", authenticate, (req, res) => {
 });
 const getAllUsers = asyncHandler(async (req, res) => {
   const users = await User.findAll();
+
+  // decrypt password
+  users.forEach((user) => {
+    user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10));
+  });
+
   res.json(users);
 });
 

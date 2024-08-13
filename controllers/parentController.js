@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const Parent = require("../Models/Parent");
 const Student = require("../Models/Student");
+const User = require("../Models/User");
 const addParent = async (req, res) => {
   const { fullName, email, password, phoneNumber, studentId } = req.body;
 
@@ -13,8 +14,14 @@ const addParent = async (req, res) => {
     }
 
     // Find or create Parent instance
-    let parent = await Parent.findOne({ where: { phoneNumber } }); // Assuming email is unique
+    let user = await User.findOne({ where: { email } }); // Assuming email is unique
 
+    if (user) {
+      return res.status(409).json({
+        error: "User with the same email already exists",
+      });
+    }
+    let parent = await Parent.findOne({ where: { phoneNumber } }); // Assuming email is unique
     if (!parent) {
       // Create new parent if not found
       parent = await Parent.create({
@@ -183,12 +190,14 @@ const deleteParent = async (req, res) => {
 
   try {
     const parent = await Parent.findByPk(parentId);
+    const user = await User.findOne({ where: { email: parent.email } });
 
     if (!parent) {
       return res.status(404).json({ error: "Parent not found" });
     }
 
     await parent.destroy();
+    await user.destroy();
 
     res.status(200).json({ message: "Parent deleted successfully" });
   } catch (error) {
@@ -288,6 +297,17 @@ const deleteStudentFromParent = async (req, res) => {
     res.status(500).json({ error: "Failed to remove student from parent" });
   }
 };
+
+const countParents = async (req, res) => {
+  try {
+    const count = await Parent.count();
+
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to count parents" });
+  }
+};
 module.exports = {
   addParent,
   getAllParents,
@@ -299,4 +319,5 @@ module.exports = {
   deleteStudentForParent,
   checkParent,
   deleteStudentFromParent,
+  countParents,
 };

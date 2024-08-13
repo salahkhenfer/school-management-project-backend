@@ -41,14 +41,14 @@ const addSchedule = asyncHandler(async (req, res) => {
 const getAllFreeRegiments = asyncHandler(async (req, res) => {
   const { startDate, endDate, startTime, endTime, day } = req.body;
 
-  // Find occupied regiments with overlapping schedules
+  // Find regiments with overlapping schedules
   const occupiedRegiments = await Regiment.findAll({
     include: {
       model: Schedule,
       where: {
         [Op.and]: [
+          // Overlapping date range
           {
-            // Overlapping date range
             [Op.or]: [
               {
                 startDate: { [Op.lte]: endDate },
@@ -56,23 +56,17 @@ const getAllFreeRegiments = asyncHandler(async (req, res) => {
               },
             ],
           },
+          // Overlapping time range on the specified day
           {
-            // Check for overlapping time range on the specified day
-            [Op.and]: [
-              { day: day }, // Matching the day
+            day: day,
+            [Op.or]: [
               {
-                [Op.or]: [
-                  // Schedule starts or ends within the requested time range
-                  {
-                    startTime: { [Op.lte]: endTime },
-                    endTime: { [Op.gte]: startTime },
-                  },
-                  // Schedule starts before and ends after the requested time range
-                  {
-                    startTime: { [Op.lte]: startTime },
-                    endTime: { [Op.gte]: endTime },
-                  },
-                ],
+                startTime: { [Op.lte]: endTime },
+                endTime: { [Op.gte]: startTime },
+              },
+              {
+                startTime: { [Op.lte]: startTime },
+                endTime: { [Op.gte]: endTime },
               },
             ],
           },
@@ -83,16 +77,17 @@ const getAllFreeRegiments = asyncHandler(async (req, res) => {
 
   const occupiedRegimentIds = occupiedRegiments.map((regiment) => regiment.id);
 
-  // Find free regiments
+  // Find regiments that are not occupied
   const freeRegiments = await Regiment.findAll({
     where: {
-      id: { [Op.notIn]: occupiedRegimentIds },
+      id: {
+        [Op.notIn]: occupiedRegimentIds.length > 0 ? occupiedRegimentIds : [0], // Handle case with no occupied regiments
+      },
     },
   });
 
   res.status(200).json({ freeRegiments });
 });
-
 const addRegiment = asyncHandler(async (req, res) => {
   const { name } = req.body;
   const regiment = await Regiment.create({ name });
@@ -177,7 +172,7 @@ const getAllSchedule = asyncHandler(async (req, res) => {
   const schedules = await Schedule.findAll();
   res.status(200).json({ schedules });
 });
-const  deleteRegiment = asyncHandler(async (req, res) => {
+const deleteRegiment = asyncHandler(async (req, res) => {
   const { id } = req.body;
 
   const regiment = await Regiment.findByPk(id);
@@ -189,7 +184,7 @@ const  deleteRegiment = asyncHandler(async (req, res) => {
   await regiment.destroy();
 
   res.status(200).json({ message: "Regiment deleted successfully" });
-}); 
+});
 module.exports = {
   addSchedule,
   getAllFreeRegiments,

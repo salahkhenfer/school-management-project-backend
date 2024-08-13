@@ -6,6 +6,7 @@ const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../Middlewares/Auth/tokens");
+const RefreshToken = require("../Models/Auth/RefreshToken");
 
 const loginController = async (req, res) => {
   const { username, password } = req.body;
@@ -20,11 +21,6 @@ const loginController = async (req, res) => {
   try {
     // Find the user in the database
     const user = await User.findOne({ where: { username } });
-
-    // Check if user exists and password is correct
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
 
     // Generate tokens
     const accessToken = generateAccessToken({ id: user.id, role: user.role });
@@ -89,13 +85,6 @@ const logoutController = async (req, res) => {
   try {
     // Extract refreshToken from cookies
     const { refreshToken } = req.cookies;
-
-    // Find user by refreshToken and reset it
-    const user = await User.findOne({ where: { refreshToken } });
-    if (user) {
-      user.refreshToken = null;
-      await user.save();
-    }
 
     // Clear cookies
     res.clearCookie("accessToken");

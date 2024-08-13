@@ -4,20 +4,17 @@ const Group = require("./Group");
 const Student = require("./Student");
 
 const Session = sequelize.define("Session", {
-  date: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  },
-  duration: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
   isCompleted: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
   },
+  sessionNumber: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
 });
-Session.belongsTo(Group);
+Session.belongsTo(Group, { as: "group", foreignKey: "groupId" });
+Group.hasMany(Session, { as: "sessions", foreignKey: "groupId" });
 
 // Each session belongs to one group
 

@@ -11,5 +11,5 @@ const Regiment = sequelize.define("Regiment", {
 
 Regiment.belongsTo(Schedule, { through: "RegimentSchedule" });
 Schedule.hasOne(Regiment, { through: "RegimentSchedule" });
-
+Schedule.belongsToMany(Regiment, { through: "RegimentSchedule" });
 module.exports = Regiment;

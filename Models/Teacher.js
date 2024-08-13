@@ -32,19 +32,14 @@ const Teacher = sequelize.define("Teacher", {
 
 // Hook to create a User when a Teacher is created
 Teacher.addHook("afterCreate", async (teacher, options) => {
-  var hashedPassword = "";
   try {
-    if (teacher.password) {
-      hashedPassword = await bcrypt.hash(teacher.password, 10);
-      teacher.password = hashedPassword;
-    }
     await User.create({
       name: teacher.fullName,
       email: teacher.email,
       phone: teacher.phoneNumber,
       username: teacher.email,
       // Assuming email is used as username
-      password: hashedPassword,
+      password: teacher.password,
       // Set a default password, should be hashed
       role: "teacher",
     });

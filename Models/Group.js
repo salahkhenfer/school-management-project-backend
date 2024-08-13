@@ -56,9 +56,8 @@ const Group = sequelize.define("Group", {
 });
 
 // Group - Teacher (Many-to-Many)
-Group.belongsToMany(Teacher, { through: "TeacherGroup"  , as: "teachers" });
+Group.belongsToMany(Teacher, { through: "TeacherGroup", as: "teachers" });
 Teacher.belongsToMany(Group, { through: "TeacherGroup", as: "groups" });
-
 
 // Group - Schedule (One-to-Many)
 Group.hasMany(Schedule, {
@@ -73,7 +72,7 @@ Schedule.belongsTo(Group, {
 });
 Group.belongsTo(Level, { as: "Level", foreignKey: "GroupId" });
 
-// Group - Session (One-to-Many)
+// // Group - Session (One-to-Many)
 // Group.hasMany(Session);
 // Session.belongsTo(Group);
 

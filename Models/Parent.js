@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const Student = require("./Student");
 const bcrypt = require("bcrypt");
+const User = require("./User");
 
 const Parent = sequelize.define(
   "Parent",
@@ -24,33 +24,42 @@ const Parent = sequelize.define(
       allowNull: false,
     },
   },
-
   {
     timestamps: true,
   }
 );
-// Assuming Parent belongs to a Student
-Parent.addHook("afterCreate", async (parent, options) => {
-  var hashedPassword = "";
+
+// Hash the password before creating the Parent record
+// Parent.beforeCreate(async (parent, options) => {
+//   try {
+//     if (parent.password) {
+//       const hashedPassword = await bcrypt.hash(parent.password, 10);
+//       parent.password = hashedPassword;
+//     }
+//   } catch (error) {
+//     console.error("Error hashing password:", error);
+//     throw error;
+//   }
+// });
+
+// Create an associated User record after Parent is created
+Parent.afterCreate(async (parent, options) => {
   try {
-    if (parent.password) {
-      hashedPassword = await bcrypt.hash(parent.password, 10);
-      parent.password = hashedPassword;
-    }
+    console.log("Creating User with password:", parent.password); // Debugging line
     await User.create({
       name: parent.fullName,
       email: parent.email,
       phone: parent.phoneNumber,
       username: parent.email,
-      // Assuming email is used as username
-      password: hashedPassword,
-      // Set a default password, should be hashed
+      password: parent.password, // Ensure this is the hashed password
       role: "parent",
     });
   } catch (error) {
     console.error("Error creating associated User:", error);
   }
 });
+
+// Uncomment if needed
 // Parent.hasMany(Student, { foreignKey: "parentId", as: "students" });
 
 module.exports = Parent;

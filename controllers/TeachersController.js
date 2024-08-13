@@ -2,9 +2,12 @@ const { Op } = require("sequelize");
 const Group = require("../Models/Group");
 const Teacher = require("../Models/Teacher");
 const asyncHandler = require("express-async-handler");
+const sequelize = require("../config/db");
+const User = require("../Models/User");
 
 const addTeachers = asyncHandler(async (req, res) => {
   const { fullName, phoneNumber, email, password } = req.body;
+  console.log("req.body", req.body);
 
   try {
     // Validate incoming data
@@ -12,7 +15,16 @@ const addTeachers = asyncHandler(async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    // Check if a teacher with the same email or phone number already exists
+    // Check if a user with the same email already exists
+    const existingUser = await User.findOne({ where: { email } });
+    console.log("user", existingUser);
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ error: "User with the same email already exists" });
+    }
+
+    // Check if a teacher with the same phone number already exists
     const existingTeacher = await Teacher.findOne({
       where: {
         [Op.or]: [{ phoneNumber }],
@@ -21,7 +33,7 @@ const addTeachers = asyncHandler(async (req, res) => {
 
     if (existingTeacher) {
       return res.status(409).json({
-        error: "Teacher with the same email or phone number already exists",
+        error: "Teacher with the same phone number already exists",
       });
     }
 
@@ -30,13 +42,13 @@ const addTeachers = asyncHandler(async (req, res) => {
       fullName,
       phoneNumber,
       email,
-      password, // Consider hashing this password in your model hook
+      password, // Ensure this password is hashed in your model's beforeSave hook
     });
 
-    res.status(201).json({ teacher });
+    return res.status(201).json({ teacher });
   } catch (error) {
     console.error("Error creating teacher:", error);
-    res
+    return res
       .status(500)
       .json({ error: `Failed to create teacher: ${error.message}` });
   }
@@ -66,30 +78,34 @@ const GetAllTeachers = asyncHandler(async (req, res) => {
 });
 const deleteTeacher = asyncHandler(async (req, res) => {
   const { id } = req.body;
-
   try {
-    // Validate incoming data
     if (!id) {
       return res.status(400).json({ error: "Teacher ID is required" });
     }
 
-    // Find the teacher
     const teacher = await Teacher.findOne({ where: { id } });
-
+    const user = await User.findOne({ where: { email: teacher.email } });
     if (!teacher) {
       return res.status(404).json({ error: "Teacher not found" });
     }
 
-    // Delete the teacher
-    await teacher.destroy();
+    // Delete related records in paymentteachers table
+    await sequelize.models.PaymentTeacher.destroy({ where: { teacherId: id } });
 
-    res.status(200).json({ message: "Teacher deleted successfully" });
+    // Now delete the teacher
+    await teacher.destroy();
+    await user.destroy();
+
+    res
+      .status(200)
+      .json({ message: "Teacher and related records deleted successfully" });
   } catch (error) {
     console.error("Error deleting teacher:", error);
-    res.status(500).json({ error: "Failed to delete teacher" });
+    res
+      .status(500)
+      .json({ error: "Failed to delete teacher", details: error.message });
   }
 });
-
 const getTeacherById = asyncHandler(async (req, res) => {
   const { id } = req.body;
 

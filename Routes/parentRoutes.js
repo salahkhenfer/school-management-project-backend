@@ -12,6 +12,7 @@ const {
   deleteStudentForParent,
   checkParent,
   deleteStudentFromParent,
+  countParents,
 } = require("../controllers/parentController");
 const asyncHandler = require("express-async-handler");
 
@@ -26,6 +27,8 @@ router.post("/searchParent", asyncHandler(searchParent));
 router.post("/addStudentInToParent", asyncHandler(addStudentInToParent));
 router.delete("/deleteStudentForParent", asyncHandler(deleteStudentForParent));
 router.post("/checkParent", asyncHandler(checkParent));
+countParents;
+router.get("/countParents", countParents);
 router.delete(
   "/deleteStudentFormParent",
   asyncHandler(deleteStudentFromParent)
