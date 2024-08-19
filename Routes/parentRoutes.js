@@ -13,6 +13,8 @@ const {
   checkParent,
   deleteStudentFromParent,
   countParents,
+  getGroupsWithStudentsAndSessionsApi,
+  getParentWithUser,
 } = require("../controllers/parentController");
 const asyncHandler = require("express-async-handler");
 
@@ -33,5 +35,11 @@ router.delete(
   "/deleteStudentFormParent",
   asyncHandler(deleteStudentFromParent)
 );
+router.post(
+  "/getGroupsWithStudentsAndSessionsApi",
+  asyncHandler(getGroupsWithStudentsAndSessionsApi)
+);
+
+router.post("/getParentWithUser", asyncHandler(getParentWithUser));
 
 module.exports = router;

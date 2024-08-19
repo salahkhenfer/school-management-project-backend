@@ -2,6 +2,11 @@ const { Op } = require("sequelize");
 const Parent = require("../Models/Parent");
 const Student = require("../Models/Student");
 const User = require("../Models/User");
+const {
+  getGroupsWithStudentsAndCompletedSessions,
+} = require("../Middlewares/pearntsMeddlewares");
+const Group = require("../Models/Group");
+const e = require("express");
 const addParent = async (req, res) => {
   const { fullName, email, password, phoneNumber, studentId } = req.body;
 
@@ -308,6 +313,77 @@ const countParents = async (req, res) => {
     res.status(500).json({ error: "Failed to count parents" });
   }
 };
+
+const getGroupsWithStudentsAndSessionsApi = async (req, res) => {
+  const { studentIds } = req.body;
+
+  if (!studentIds || !Array.isArray(studentIds)) {
+    return res
+      .status(400)
+      .json({ error: "Invalid input. 'studentIds' must be an array." });
+  }
+
+  try {
+    const groups = await getGroupsWithStudentsAndCompletedSessions(studentIds);
+    res.status(200).json({ groups });
+  } catch (error) {
+    console.error("Error fetching groups with students and sessions:", error);
+    res.status(500).json({
+      error: "Failed to fetch groups with students and sessions",
+      details: error.message,
+    });
+  }
+};
+
+const getParentWithUser = async (req, res) => {
+  const { email, name, phoneNumber } = req.body;
+
+  console.log(email, name, phoneNumber);
+  // Validate the required fields
+  if (!email || !name || !phoneNumber) {
+    return res
+      .status(400)
+      .json({ error: "Missing required fields: email, name, or phone" });
+  }
+
+  try {
+    const parent = await Parent.findOne({
+      where: {
+        email,
+        fullName: name,
+        phoneNumber: phoneNumber,
+      },
+      include: [
+        {
+          model: Student,
+          as: "students",
+          include: [
+            {
+              model: Group,
+              as: "groups",
+              attributes: ["id", "name"],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!parent) {
+      return res.status(404).json({ error: "Parent not found" });
+    }
+
+    res.status(200).json({
+      parent: {
+        ...parent.toJSON(),
+        role: "parent",
+      },
+    });
+  } catch (error) {
+    console.log("Error fetching parent with user:", error);
+    res.status(500).json({ error: "Failed to fetch parent" });
+  }
+};
+
 module.exports = {
   addParent,
   getAllParents,
@@ -320,4 +396,6 @@ module.exports = {
   checkParent,
   deleteStudentFromParent,
   countParents,
+  getGroupsWithStudentsAndSessionsApi,
+  getParentWithUser,
 };

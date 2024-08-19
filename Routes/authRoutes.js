@@ -8,6 +8,7 @@ const {
   loginController,
   registerController,
   logoutController,
+  getUserById,
 } = require("../controllers/AuthController");
 const asyncHandler = require("express-async-handler");
 const authenticate = require("../Middlewares/Auth/authenticate");
@@ -34,6 +35,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
   res.json(users);
 });
+router.post("/getUserById", getUserById);
 
 router.get("/getAllUsers", getAllUsers);
 module.exports = router;

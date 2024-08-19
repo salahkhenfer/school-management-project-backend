@@ -6,6 +6,7 @@ const {
   deleteTeacher,
   searchTeachers,
   countTeachers,
+  getTeacherWithUser,
 } = require("../controllers/TeachersController");
 const authenticate = require("../Middlewares/Auth/authenticate");
 
@@ -17,5 +18,6 @@ router.post("/GetTeacherById", getTeacherById);
 router.delete("/DeleteTeacher", deleteTeacher);
 router.post("/searchTeachers", searchTeachers);
 router.get("/countTeachers", countTeachers);
+router.post("/getTeacherWithUser", getTeacherWithUser);
 
 module.exports = router;

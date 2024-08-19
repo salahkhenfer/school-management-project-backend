@@ -171,6 +171,42 @@ const countTeachers = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "Failed to count teachers" });
   }
 });
+
+const getTeacherWithUser = async (req, res) => {
+  const details = req.body;
+
+  try {
+    const teacher = await Teacher.findOne({
+      where: {
+        email: details.email,
+        fullName: details.name,
+        phoneNumber: details.phone,
+      },
+      include: [
+        {
+          model: Group,
+          as: "groups",
+        },
+      ],
+    });
+
+    if (teacher) {
+      console.log("Teacher with associated User found:", teacher);
+      return res.json(teacher); // Send the teacher data with associated user to the client
+    } else {
+      console.log("No matching Teacher with associated User found.");
+      return res
+        .status(404)
+        .json({ message: "No matching Teacher with associated User found." });
+    }
+  } catch (error) {
+    console.error("Error retrieving Teacher with associated User:", error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while retrieving the teacher." });
+  }
+};
+
 module.exports = {
   addTeachers,
   GetAllTeachers,
@@ -178,4 +214,5 @@ module.exports = {
   getTeacherById,
   searchTeachers,
   countTeachers,
+  getTeacherWithUser,
 };

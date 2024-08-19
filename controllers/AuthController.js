@@ -7,6 +7,7 @@ const {
   generateRefreshToken,
 } = require("../Middlewares/Auth/tokens");
 const RefreshToken = require("../Models/Auth/RefreshToken");
+const Permission = require("../Models/Permission");
 
 const loginController = async (req, res) => {
   const { username, password } = req.body;
@@ -97,5 +98,30 @@ const logoutController = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const getUserById = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const user = await User.findByPk(
+      id,
+      // include: [{ model: User, as: "Sender" }],
+      // order: [["createdAt", "DESC"]],
+      {
+        include: [{ model: Permission, as: "permissions" }],
+      }
+    );
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user by id:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
-module.exports = { loginController, registerController, logoutController };
+module.exports = {
+  getUserById,
+  loginController,
+  registerController,
+  logoutController,
+};

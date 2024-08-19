@@ -55,6 +55,7 @@ app.use("/api/paymentTeacher", require("./Routes/paymentTeacherRoutes"));
 app.use("/api/paymentEmployer", require("./Routes/PaymentEmployerRouters"));
 app.use("/api/permissions", require("./routes/permissionRoutes"));
 app.use("/api/sessions", require("./routes/sessionRoutes"));
+app.use("/api/messages", require("./routes/messagesRoutes"));
 app.use("/api", require("./Routes/protectedRoutes"));
 
 //error handling middleware
